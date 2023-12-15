@@ -1,44 +1,35 @@
 package main
 
 import (
-	"net/http"
-	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
 type Note struct {
-	NoteId string `json:"noteId"`
-	Title string `json:"title"`
-	Content string  `json:"content"`
+	NoteId string `bson:"noteId"`
+	Title string `bson:"title"`
+	Content string  `bson:"content"`
 }
-
-
-var notes = []Note {
-	{NoteId: "123", Title:"my holiday entry", Content: "it was super fun!"},
-}
-
-func createNote(c *gin.Context) {
-	var newNote Note
-	if err := c.BindJSON(&newNote); err != nil {
-		fmt.Println("Error binding JSON:", err)
-    	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-		return
-	}
-	notes = append(notes, newNote)
-	c.IndentedJSON(http.StatusCreated, newNote)
-}
-
-func getNotes(c *gin.Context){
-	c.IndentedJSON(http.StatusOK, notes)
-}
-
 
 
 func main() {
+
+	client, ctx, cancel, err := connect("mongodb://localhost:27017")
+
+	if err!= nil{
+		panic(err)
+	}
+	defer close(client, ctx, cancel)
+
 	router := gin.Default()
-	
-	router.POST("/createNote", createNote)
-	router.GET("/getNotes", getNotes)
+
+	router.POST("/createNote", func(c *gin.Context){
+		createNote(c, client)
+	})
+
+	router.GET("/getNotes", func(c *gin.Context) {
+		getNotes(c, client, ctx)
+	})
+	router.DELETE("/deleteNote/")
 
 	router.Run("localhost:5000")
 }
