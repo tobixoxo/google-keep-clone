@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/contrib/static"
 )
 
 type Note struct {
@@ -9,7 +10,6 @@ type Note struct {
 	Title string `bson:"title"`
 	Content string  `bson:"content"`
 }
-
 
 func main() {
 
@@ -22,14 +22,22 @@ func main() {
 
 	router := gin.Default()
 
-	router.POST("/createNote", func(c *gin.Context){
+	router.Use(static.Serve("/", static.LocalFile("../my-react-app/build", true)))
+
+	router.POST("/notes", func(c *gin.Context){
 		createNote(c, client)
 	})
 
-	router.GET("/getNotes", func(c *gin.Context) {
+	router.GET("/notes", func(c *gin.Context) {
 		getNotes(c, client, ctx)
 	})
-	router.DELETE("/deleteNote/")
+
+	router.DELETE("/notes/:noteId",
+	func(c *gin.Context) {
+		deleteNote(c, client, ctx)
+	})
+
+	
 
 	router.Run("localhost:5000")
 }

@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+
 func createNote(c *gin.Context, client *mongo.Client) {
 	var newNote Note
 	if err := c.BindJSON(&newNote); err != nil {
@@ -28,6 +29,20 @@ func createNote(c *gin.Context, client *mongo.Client) {
 	c.IndentedJSON(http.StatusCreated, newNote)
 }
 
+func deleteNote(c *gin.Context, client *mongo.Client, ctx context.Context){
+	noteId := c.Param("noteId")
+	deletectx := context.Background()
+	filter := bson.D{{"noteId",noteId}}
+	coll := client.Database("google-keep-clone-db").Collection("keep-notes")
+	result, err := coll.DeleteOne(deletectx, filter)
+	if err != nil {
+		fmt.Println("error deleting note: ", err)
+		c.Status(400)
+	}
+	fmt.Printf("Number of documents deleted: %d\n", result.DeletedCount)
+	c.Status(200)
+}
+
 func getNotes(c *gin.Context,client *mongo.Client,  ctx context.Context){
 	readctx := context.Background()
 	filter := bson.D{{}} 
@@ -37,7 +52,6 @@ func getNotes(c *gin.Context,client *mongo.Client,  ctx context.Context){
 		fmt.Println("error querying notes: ", err)
 		return 
 	}
-
 
 	var result []Note
 	if err := cursor.All(readctx, &result); err != nil {
