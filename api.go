@@ -61,3 +61,35 @@ func getNotes(c *gin.Context,client *mongo.Client,  ctx context.Context){
 
 	c.IndentedJSON(http.StatusOK, result)
 }
+
+func updateNote(c *gin.Context, client *mongo.Client, ctx context.Context){
+	// capture id, title and content
+	var updatedNote Note
+	if err := c.BindJSON(&updatedNote); err != nil {
+		fmt.Println("Error binding JSON:", err)
+    	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+	noteId := updatedNote.NoteId
+	updatectx := context.Background()
+	filter := bson.D{{"noteId",noteId}}
+	update := bson.D{
+		{"$set", bson.D{{"title", updatedNote.Title}, 
+		{"content", updatedNote.Content}}}}
+	coll := client.Database("google-keep-clone-db").Collection("keep-notes")
+
+	result, err := coll.UpdateOne(updatectx, filter, update)
+	if err != nil {
+		fmt.Println("error updating note: ", err)
+		return 
+	}
+
+	c.IndentedJSON(http.StatusCreated, result)
+
+
+	// get note by id
+
+	// update the note 
+
+	// return 
+}

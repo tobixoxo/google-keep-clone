@@ -37,6 +37,9 @@ func main() {
 		deleteNote(c, client, ctx)
 	})
 
+	router.PUT("/notes", func(c * gin.Context){
+		updateNote(c, client, ctx)
+	})
 	
 
 	router.Run("localhost:5000")
