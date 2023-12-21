@@ -73,9 +73,10 @@ func updateNote(c *gin.Context, client *mongo.Client, ctx context.Context){
 	noteId := updatedNote.NoteId
 	updatectx := context.Background()
 	filter := bson.D{{"noteId",noteId}}
-	update := bson.D{
-		{"$set", bson.D{{"title", updatedNote.Title}, 
-		{"content", updatedNote.Content}}}}
+	fmt.Println(updatedNote.NoteId)
+	fmt.Println(updatedNote.Title)
+	fmt.Println(updatedNote.Content)
+	update := bson.D{{"$set", bson.D{{"title", updatedNote.Title}, {"content", updatedNote.Content}}}}
 	coll := client.Database("google-keep-clone-db").Collection("keep-notes")
 
 	result, err := coll.UpdateOne(updatectx, filter, update)
@@ -83,7 +84,13 @@ func updateNote(c *gin.Context, client *mongo.Client, ctx context.Context){
 		fmt.Println("error updating note: ", err)
 		return 
 	}
-
+	if result.ModifiedCount == 0 {
+		fmt.Println("no Note updated");
+	}
+	if result.MatchedCount == 0 {
+		fmt.Println("no Note matched")
+	}
+	// fmt.Println(result.ModifiedCount)
 	c.IndentedJSON(http.StatusCreated, result)
 
 
